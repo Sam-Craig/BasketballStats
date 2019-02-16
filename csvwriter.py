@@ -5,7 +5,7 @@ import csv
 
 baseurl = "https://www.basketball-reference.com"
 csvlocplayers = "/Users/samcraig/PycharmProjects/BasketballRefScraper/bbstats/players/"
-csvlocgames = "/Users/samcraig/PycharmProjects/BasketballRefScraper/bbstats/players/games/"
+csvlocgames = "/Users/samcraig/PycharmProjects/BasketballRefScraper/bbstats/games/"
 
 
 def loadplayerstocsv(startdate, enddate):
@@ -113,7 +113,23 @@ def finddailyboxes(url, date, csvwriter):
         soup.decompose()
 
 
-"""dates = [(date(2016, 10, 25), date(2017, 4, 12)),
+dates = [
+        (date(2004, 11, 2 ), date(2005, 4, 20)),
+        (date(2003, 10, 28), date(2004, 4, 14)),
+        (date(2002, 10, 29), date(2003, 4, 16)),
+        (date(2001, 10, 30), date(2002, 4, 17)),
+        (date(2000, 10, 31), date(2001, 4, 18))
+         ]
+
+
+loadplayerstocsv(date(2017, 10, 17), date(2018, 4, 11))
+
+
+# 2017-2018 dates: 17-10-2017 11-4-2018
+# 2016-2017 dates: 25-10-2016 12-4-2017
+# 2015-2016 dates: 27-10-2015 13-4-2016
+# 2014-2015 dates: 28-10-2014 15-4-2015
+'''(date(2016, 10, 25), date(2017, 4, 12)),
          (date(2015, 10, 27), date(2016, 4, 13)),
          (date(2014, 10, 28), date(2015, 4, 15)),
          (date(2013, 10, 29), date(2014, 4, 16)),
@@ -122,16 +138,4 @@ def finddailyboxes(url, date, csvwriter):
          (date(2010, 10, 26), date(2011, 4, 13)),
          (date(2009, 10, 27), date(2010, 4, 14)),
          (date(2008, 10, 25), date(2009, 4, 16)),
-         (date(2007, 10, 30), date(2008, 4, 16)),
-         ](all these players loaded, not games)
-
-for d in dates:
-
-    loadplayerstocsv(*d)
-    #loadgamestocsv(*d)
-"""
-
-# 2017-2018 dates: 17-10-2017 11-4-2018
-# 2016-2017 dates: 25-10-2016 12-4-2017
-# 2015-2016 dates: 27-10-2015 13-4-2016
-# 2014-2015 dates: 28-10-2014 15-4-2015
+         (date(2007, 10, 30), date(2008, 4, 16)),'''
