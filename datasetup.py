@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import random as rd
+from matplotlib import pyplot as plt
+
 
 csvloc = "/Users/samcraig/PycharmProjects/BasketballRefScraper/bbstats/"
 
@@ -31,11 +33,10 @@ def getnumgames(startdate, enddate):
 
 def makedata(startdate, enddate):
     numgames = getnumgames(startdate, enddate)
-    tempdata = np.zeros((numgames, 16, 9), object)
-    templabels = np.zeros(numgames, int)
+    tempdata = np.zeros((numgames, 16, 9), dtype=np.float)
+    templabels = np.zeros(numgames, dtype=np.uint)
     outerindex = 0
     for i in range(startdate, enddate):
-        print(i)
         players = pd.read_csv(csvloc + "players/{}-{}_players.csv".format(i, i+1))
         games = pd.read_csv(csvloc + "games/{}-{}_games.csv".format(i, i+1))
         for game in games.itertuples(index=False, name=None):
@@ -44,25 +45,92 @@ def makedata(startdate, enddate):
             switched = rd.randrange(0,2)
             innerindex = 0
             if switched:
+
                 templabels[outerindex] = scoretoclassification(game[3] - game[4])
                 for player, minutes in zip(game[5:13], game[21:29]):
-                    tempdata[outerindex][innerindex] = np.append(players.loc[players["Name"] == player].squeeze().iloc[1:9].to_numpy(), minutes)
+                    for i, stat in enumerate(players.loc[players["Name"] == player].squeeze().iloc[1:9]):
+                        try:
+                            tempdata[outerindex][innerindex][i] = stat
+                        except ValueError:
+                            print(game)
+                            break
+                    tempdata[outerindex][innerindex][8] = minutes
                     innerindex += 1
                 for player, minutes in zip(game[13:21], game[29:37]):
-                    tempdata[outerindex][innerindex] = np.append(players.loc[players["Name"] == player].squeeze().iloc[1:9].to_numpy(), minutes)
+                    for i, stat in enumerate(players.loc[players["Name"] == player].squeeze().iloc[1:9]):
+                        try:
+                            tempdata[outerindex][innerindex][i] = stat
+                        except ValueError:
+                            print(game)
+                            break
+                    tempdata[outerindex][innerindex][8] = minutes
                     innerindex += 1
 
             else:
                 templabels[outerindex] = scoretoclassification(game[4] - game[3])
                 for player, minutes in zip(game[13:21], game[29:37]):
-                    tempdata[outerindex][innerindex] = np.append(players.loc[players["Name"] == player].squeeze().iloc[1:9].to_numpy(), minutes)
+                    for i, stat in enumerate(players.loc[players["Name"] == player].squeeze().iloc[1:9]):
+                        try:
+                            tempdata[outerindex][innerindex][i] = stat
+                        except ValueError:
+                            print(game)
+                            break
+                    tempdata[outerindex][innerindex][8] = minutes
                     innerindex += 1
                 for player, minutes in zip(game[5:13], game[21:29]):
-                    tempdata[outerindex][innerindex] = np.append(players.loc[players["Name"] == player].squeeze().iloc[1:9].to_numpy(), minutes)
+                    for i, stat in enumerate(players.loc[players["Name"] == player].squeeze().iloc[1:9]):
+                        try:
+                            tempdata[outerindex][innerindex][i] = stat
+                        except ValueError:
+                            print(game)
+                            break
+                    tempdata[outerindex][innerindex][8] = minutes
                     innerindex += 1
 
             outerindex += 1
-        print(tempdata.shape)
     return np.array(tempdata), np.array(templabels)
 
-print(makedata(2005,2018))
+#data is a numpy array of shape (x, 16, 9)
+def scaledata(data, labels):
+    max = np.zeros(9)
+    cont = True
+    i = 0
+    for datum in data:
+        for player in datum:
+            for j in range(9):
+                if player[j] > max[j]:
+                    max[j] = player[j]
+
+    for datum in data:
+        for player in datum:
+            for i in range(9):
+                player[i]/=max[0]
+    return data, labels
+
+
+# takes a subset of data to be used for testing our neural network
+def gettestdata(data, labels, percent):
+    testdata = np.empty((0, 16,9))
+    testlabels = np.array([])
+    i = 0
+    while True:
+        try:
+            if rd.random() < percent:
+                testdata = np.append(testdata, np.array([data[i]]), axis = 0)
+                data = np.delete(data, i, axis = 0)
+                testlabels = np.append(testlabels, np.array([labels[i]]), axis = 0)
+                labels = np.delete(labels, i, axis = 0)
+
+
+
+            i+=1
+        except IndexError:
+            return data, labels, testdata, testlabels
+
+data, labels = makedata(2007,2009)
+
+data, labels = scaledata(data, labels)
+
+data, labels, testdata, testlabels = gettestdata(data, labels, .05)
+
+data.shape, labels.shape, testdata.shape, testlabels.shape

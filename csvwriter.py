@@ -2,15 +2,17 @@ from bs4 import BeautifulSoup
 import requests
 from datetime import date, timedelta
 import csv
+from matplotlib import pyplot as plt
+
 
 baseurl = "https://www.basketball-reference.com"
 csvlocplayers = "/Users/samcraig/PycharmProjects/BasketballRefScraper/bbstats/players/"
 csvlocgames = "/Users/samcraig/PycharmProjects/BasketballRefScraper/bbstats/games/"
 
 
-def loadplayerstocsv(startdate, enddate):
+def loadplayerstocsv(startdate, enddate, statmode):
     url = baseurl + "/leagues/NBA_{}_per_minute.html".format(enddate.year)
-    with open(csvlocplayers + "{}-{}_players.csv".format(startdate.year, enddate.year), "w") as csvfile:
+    with open(csvlocplayers + "{}-{}_players{}.csv".format(startdate.year, enddate.year, "stats" if statmode else ""), "w") as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=',',
                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
         csvwriter.writerow(["Name", "mp", "pp36", "ap36", "rp36", "2pmp36", "2pap36", "3pmp36", "3pap36"])
@@ -36,7 +38,8 @@ def loadplayerstocsv(startdate, enddate):
 
                     row[1] += minutes
                 else:
-                    if not (row == [] or row[1] < 50):
+                    # If we are in statmode, only
+                    if not (row == []) and ((not statmode) or row[1] > 200):
                         csvwriter.writerow(row)
                     row = [name]
                     for i in range(1,9):
@@ -107,22 +110,42 @@ def finddailyboxes(url, date, csvwriter):
         temp0 = [(t["data-append-csv"], m["csk"]) for t, m, e in zip(t0, m0, range(8))]
         temp1 = [(t["data-append-csv"], m["csk"]) for t, m, e in zip(t1, m1, range(8))]
         temp0.sort(key=lambda x: int(x[1]), reverse=True)
+        if len(temp0) < 8:
+            temp0 += [("", 0)]*(8-len(temp0))
         temp1.sort(key=lambda x: int(x[1]), reverse=True)
+        if len(temp1) < 8:
+            temp1 += [("", 0)]*(8-len(temp0))
         row += [t[0] for t in temp0] + [t[0] for t in temp1] + [t[1] for t in temp0] + [t[1] for t in temp1]
         csvwriter.writerow(row)
         soup.decompose()
 
 
 dates = [
-        (date(2004, 11, 2 ), date(2005, 4, 20)),
-        (date(2003, 10, 28), date(2004, 4, 14)),
-        (date(2002, 10, 29), date(2003, 4, 16)),
-        (date(2001, 10, 30), date(2002, 4, 17)),
-        (date(2000, 10, 31), date(2001, 4, 18))
+        (date(2017, 10, 17), date(2018, 4, 11), False, False),
+        (date(2016, 10, 25), date(2017, 4, 12), False, False),
+        (date(2015, 10, 27), date(2016, 4, 13), False, False),
+        (date(2014, 10, 28), date(2015, 4, 15), False, False),
+        (date(2013, 10, 29), date(2014, 4, 16), False, False),
+        (date(2012, 10, 30), date(2013, 4, 17), False, False),
+        (date(2011, 12, 25), date(2012, 4, 26), False, False), # lockout season
+        (date(2010, 10, 26), date(2011, 4, 13), False, False),
+        (date(2009, 10, 27), date(2010, 4, 14), False, False),
+        (date(2008, 10, 25), date(2009, 4, 16), False, False),
+        (date(2007, 10, 30), date(2008, 4, 16), False, False),
+        (date(2006, 10, 31), date(2007, 4, 18), False, False),
+        (date(2005, 11, 1 ), date(2006, 4, 19), False, False),
+        (date(2004, 11, 2 ), date(2005, 4, 20), False, False),
+        (date(2003, 10, 28), date(2004, 4, 14), False, False),
+        (date(2002, 10, 29), date(2003, 4, 16), False, False),
+        (date(2001, 10, 30), date(2002, 4, 17), False, False),
+        (date(2000, 10, 31), date(2001, 4, 18), False, False)
          ]
 
-
-loadplayerstocsv(date(2017, 10, 17), date(2018, 4, 11))
+for d in dates:
+    if d[2]:
+        loadgamestocsv(d[0], d[1])
+    if d[3]:
+        loadplayerstocsv(d[0], d[1], False)
 
 
 # 2017-2018 dates: 17-10-2017 11-4-2018
